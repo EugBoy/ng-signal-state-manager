@@ -1,0 +1,50 @@
+﻿{
+  "name": "ng-signal-state-manager",
+  "version": "0.1.0",
+  "description": "Lightweight, type-safe Angular Signals query cache and state manager with in-flight deduplication, TTL, and automatic garbage collection",
+  "keywords": [
+    "angular",
+    "signals",
+    "state-management",
+    "query-cache",
+    "cache",
+    "rxjs",
+    "deduplication",
+    "angular-signals"
+  ],
+  "author": "Evgen",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Evgen/ng-signal-state-manager.git"
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.lib.json",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "@angular/core": ">=17.0.0",
+    "rxjs": ">=7.4.0"
+  },
+  "devDependencies": {
+    "@angular/core": "^22.1.0",
+    "rxjs": "~7.8.0",
+    "typescript": "~6.0.2"
+  }
+}

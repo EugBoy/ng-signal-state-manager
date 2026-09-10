@@ -1,0 +1,22 @@
+﻿{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "experimentalDecorators": true,
+    "importHelpers": false,
+    "isolatedModules": true,
+    "paths": {
+      "@angular/core": ["./node_modules/@angular/core", "../signal-state-manager/node_modules/@angular/core"],
+      "rxjs": ["./node_modules/rxjs", "../signal-state-manager/node_modules/rxjs"],
+      "rxjs/*": ["./node_modules/rxjs/*", "../signal-state-manager/node_modules/rxjs/*"]
+    }
+  }
+}
