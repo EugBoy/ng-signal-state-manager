@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "ng-signal-state-manager",
   "version": "0.1.0",
   "description": "Lightweight, type-safe Angular Signals query cache and state manager with in-flight deduplication, TTL, and automatic garbage collection",
@@ -16,7 +16,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Evgen/ng-signal-state-manager.git"
+    "url": "git+https://github.com/EugBoy/ng-signal-state-manager.git"
   },
   "main": "dist/index.js",
   "module": "dist/index.js",
