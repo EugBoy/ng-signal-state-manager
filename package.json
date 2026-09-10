@@ -1,7 +1,7 @@
 {
   "name": "ng-signal-state-manager",
   "version": "0.1.0",
-  "description": "Lightweight, type-safe Angular Signals query cache and state manager with in-flight deduplication, TTL, and automatic garbage collection",
+  "description": "Lightweight, type-safe Angular Signals query cache & state manager | Легковесный менеджер состояния и кэш асинхронных запросов для Angular Signals",
   "keywords": [
     "angular",
     "signals",
@@ -32,6 +32,7 @@
     "dist",
     "src",
     "README.md",
+    "README_RU.md",
     "LICENSE"
   ],
   "scripts": {

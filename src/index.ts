@@ -1,8 +1,8 @@
 /**
- * Публичный API автономного модуля стейт-менеджера и кэша запросов `SignalQueryCache`.
+ * Public API of the standalone `SignalQueryCache` state manager and query cache library.
  *
- * Эту папку (`app/core/state-manager`) можно целиком копировать в любой Angular-проект
- * или оформлять как независимую npm-библиотеку.
+ * ---
+ * 🇷🇺 **RU**: Публичный API автономного модуля стейт-менеджера и кэша запросов `SignalQueryCache`.
  */
 
 export * from './query.types';

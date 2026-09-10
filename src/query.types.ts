@@ -2,7 +2,15 @@ import { Signal, WritableSignal } from '@angular/core';
 import { Observable } from 'rxjs';
 
 /**
- * Возможные статусы жизненного цикла асинхронного запроса в кэше.
+ * Lifecycle statuses of an asynchronous query in the cache.
+ *
+ * - `idle`: Query has not been executed yet or was reset.
+ * - `loading`: Query is currently in-flight (initial fetch or background refetch).
+ * - `success`: Query completed successfully, valid data is cached.
+ * - `error`: Query failed with an error, error object is stored.
+ *
+ * ---
+ * 🇷🇺 **RU**: Возможные статусы жизненного цикла асинхронного запроса в кэше.
  *
  * - `idle`: Запрос ещё не выполнялся или был сброшен.
  * - `loading`: Запрос выполняется (первичная загрузка или фоновое обновление).
@@ -12,206 +20,263 @@ import { Observable } from 'rxjs';
 export type QueryStatus = 'idle' | 'loading' | 'success' | 'error';
 
 /**
- * Тип значения или функции обновления для оптимистичной модификации кэша.
+ * Value or updater callback type for optimistic cache mutation.
  *
- * @template T Тип кэшируемых данных.
+ * ---
+ * 🇷🇺 **RU**: Тип значения или функции обновления для оптимистичной модификации кэша.
+ *
+ * @template T Cached data type / Тип кэшируемых данных.
  */
 export type QueryDataUpdater<T> = (T | null) | ((previous: T | null) => T | null);
 
 /**
- * Сигнатура функции-загрузчика (fetcher), возвращающей Observable с данными.
+ * Signature of the fetcher function returning an Observable with data.
  *
- * @template T Тип возвращаемых данных.
- * @template Args Кортеж типов аргументов запроса.
+ * ---
+ * 🇷🇺 **RU**: Сигнатура функции-загрузчика (fetcher), возвращающей Observable с данными.
+ *
+ * @template T Return data type / Тип возвращаемых данных.
+ * @template Args Tuple of argument types / Кортеж типов аргументов запроса.
  */
 export type QueryFetcher<T, Args extends readonly unknown[]> = (...args: Args) => Observable<T>;
 
 /**
- * Конфигурационные параметры для выполнения и кэширования запроса.
+ * Configuration options for executing and caching a query.
  *
- * @template T Тип кэшируемых данных.
+ * ---
+ * 🇷🇺 **RU**: Конфигурационные параметры для выполнения и кэширования запроса.
+ *
+ * @template T Cached data type / Тип кэшируемых данных.
  */
 export interface QueryOptions<T = unknown> {
   /**
-   * Время актуальности данных в миллисекундах (Stale Time).
-   * В течение этого периода последующие вызовы query с теми же аргументами
-   * возвращают кэшированные данные без повторного сетевого запроса.
+   * Data freshness duration in milliseconds (Stale Time / TTL).
+   * During this window, subsequent calls return cached data without a network request.
    *
-   * - По умолчанию: `60_000` мс (1 минута).
-   * - `0`: данные считаются устаревшими сразу после получения (каждый вызов инициирует рефетч).
-   * - `Infinity`: данные никогда не устаревают автоматически.
+   * - Default: `60_000` ms (1 minute).
+   * - `0`: data is considered stale immediately (every call triggers a refetch).
+   * - `Infinity`: data never stales automatically.
+   *
+   * ---
+   * 🇷🇺 **RU**: Время актуальности данных в миллисекундах (Stale Time).
+   * В течение этого периода вызовы возвращают кэшированные данные без повторного обращения к сети.
    */
   readonly ttl?: number;
 
   /**
-   * Время хранения неактивной записи в памяти в миллисекундах (Garbage Collection Time).
-   * Таймер запускается, когда число активных подписчиков становится равным 0.
-   * Если до истечения таймера подписчик появляется снова, таймер отменяется.
+   * Inactive cache retention time in milliseconds (Garbage Collection Time).
+   * Countdown starts when active subscribers reach 0. If a subscriber attaches before expiration, timer cancels.
    *
-   * - По умолчанию: `300_000` мс (5 минут).
+   * - Default: `300_000` ms (5 minutes).
+   *
+   * ---
+   * 🇷🇺 **RU**: Время хранения неактивной записи в памяти в миллисекундах (Garbage Collection Time).
+   * Таймер запускается, когда число активных подписчиков становится равным 0.
    */
   readonly gcTime?: number;
 
   /**
-   * Принудительное выполнение сетевого запроса независимо от наличия данных в кэше и их свежести.
+   * Force network request execution regardless of cache presence or freshness.
    *
-   * - По умолчанию: `false`.
+   * - Default: `false`.
+   *
+   * ---
+   * 🇷🇺 **RU**: Принудительное выполнение сетевого запроса независимо от наличия данных в кэше и их свежести.
    */
   readonly forceFetch?: boolean;
 
   /**
-   * Начальное значение для сигнала данных до завершения первого запроса.
+   * Initial value for the data signal before the first request completes.
    *
-   * - По умолчанию: `null`.
+   * - Default: `null`.
+   *
+   * ---
+   * 🇷🇺 **RU**: Начальное значение для сигнала данных до завершения первого запроса.
    */
   readonly initialData?: T | null;
 
   /**
-   * Коллбэк, вызываемый при успешном получении ответа от сервера.
+   * Callback invoked on successful query response.
    *
-   * @param data Полученные данные.
+   * ---
+   * 🇷🇺 **RU**: Коллбэк, вызываемый при успешном получении ответа от сервера.
+   *
+   * @param data Retrieved response data / Полученные данные.
    */
   readonly onSuccess?: (data: T) => void;
 
   /**
-   * Коллбэк, вызываемый при возникновении ошибки во время выполнения запроса.
+   * Callback invoked when a query encounters an error.
    *
-   * @param error Объект ошибки.
+   * ---
+   * 🇷🇺 **RU**: Коллбэк, вызываемый при возникновении ошибки во время выполнения запроса.
+   *
+   * @param error Error object / Объект ошибки.
    */
   readonly onError?: (error: unknown) => void;
 }
 
 /**
- * Публичный интерфейс результата запроса, предоставляемый UI-компонентам и сервисам.
+ * Public query result interface provided to UI components and services.
+ * All states are exposed as Angular Signals (`Signal<T>`).
+ *
+ * ---
+ * 🇷🇺 **RU**: Публичный интерфейс результата запроса, предоставляемый UI-компонентам и сервисам.
  * Все состояния экспортируются в виде сигналов Angular (`Signal<T>`).
  *
- * @template T Тип кэшируемых данных.
+ * @template T Cached data type / Тип кэшируемых данных.
  */
 export interface QueryResult<T> {
   /**
-   * Сигнал только для чтения, содержащий текущие кэшированные данные или `null`.
+   * Read-only signal containing the cached data or `null`.
+   *
+   * ---
+   * 🇷🇺 **RU**: Сигнал только для чтения с текущими кэшированными данными или `null`.
    */
   readonly data: Signal<T | null>;
 
   /**
-   * Сигнал только для чтения с текущим статусом запроса (`idle` | `loading` | `success` | `error`).
+   * Read-only signal with current query status (`idle` | `loading` | `success` | `error`).
+   *
+   * ---
+   * 🇷🇺 **RU**: Сигнал только для чтения с текущим статусом запроса.
    */
   readonly status: Signal<QueryStatus>;
 
   /**
-   * Сигнал только для чтения с объектом ошибки (или `null`, если ошибки нет).
+   * Read-only signal with error object or `null`.
+   *
+   * ---
+   * 🇷🇺 **RU**: Сигнал только для чтения с объектом ошибки (или `null`).
    */
   readonly error: Signal<unknown | null>;
 
   /**
-   * Вычисляемый сигнал: `true`, если в данный момент выполняется сетевой запрос (`status === 'loading'`).
+   * Computed signal: `true` if a network request is currently executing.
+   *
+   * ---
+   * 🇷🇺 **RU**: Вычисляемый сигнал: `true`, если в данный момент выполняется сетевой запрос.
    */
   readonly isLoading: Signal<boolean>;
 
   /**
-   * Вычисляемый сигнал: `true`, если запрос успешно выполнен (`status === 'success'`).
+   * Computed signal: `true` if query completed successfully.
+   *
+   * ---
+   * 🇷🇺 **RU**: Вычисляемый сигнал: `true`, если запрос успешно выполнен.
    */
   readonly isSuccess: Signal<boolean>;
 
   /**
-   * Вычисляемый сигнал: `true`, если запрос завершился ошибкой (`status === 'error'`).
+   * Computed signal: `true` if query failed with an error.
+   *
+   * ---
+   * 🇷🇺 **RU**: Вычисляемый сигнал: `true`, если запрос завершился ошибкой.
    */
   readonly isError: Signal<boolean>;
 
   /**
-   * Метод для принудительного перезапуска сетевого запроса.
-   * Возвращает разделяемый `Observable<T>`, на который можно подписаться при необходимости.
+   * Forces a re-execution of the network request.
+   * Returns a shared `Observable<T>` that can be subscribed to if needed.
    *
-   * @returns Поток `Observable<T>` с ответом сервера.
+   * ---
+   * 🇷🇺 **RU**: Метод для принудительного перезапуска сетевого запроса.
+   *
+   * @returns Shared `Observable<T>` stream / Поток `Observable<T>` с ответом сервера.
    */
   readonly refetch: () => Observable<T>;
 
   /**
-   * Метод оптимистичного обновления данных в кэше без отправки сетевого запроса.
-   * Устанавливает статус `success` и обновляет временную метку `lastUpdated`.
+   * Optimistically updates cached data without an HTTP network request.
+   * Sets status to `success` and refreshes `lastUpdated` timestamp.
    *
-   * @param updater Новое значение данных либо чистая функция `(previous: T | null) => T`.
+   * ---
+   * 🇷🇺 **RU**: Метод оптимистичного обновления данных в кэше без отправки сетевого запроса.
+   *
+   * @param updater New value or pure update function `(prev: T | null) => T` / Новое значение или функция обновления.
    */
   readonly setData: (updater: QueryDataUpdater<T>) => void;
 
   /**
-   * Функция получения временной метки (Unix timestamp в мс) последнего успешного обновления данных.
+   * Returns timestamp (Unix ms) of the last successful data fetch.
    *
-   * @returns Метка времени в миллисекундах.
+   * ---
+   * 🇷🇺 **RU**: Функция получения временной метки (Unix ms) последнего успешного обновления.
+   *
+   * @returns Timestamp in milliseconds / Метка времени в миллисекундах.
    */
   readonly lastUpdated: () => number;
 }
 
 /**
- * Внутренняя структура хранения записи в реестре кэша.
+ * Internal cache record storage structure.
  *
- * @template T Тип кэшируемых данных.
+ * ---
+ * 🇷🇺 **RU**: Внутренняя структура хранения записи в реестре кэша.
+ *
+ * @template T Cached data type / Тип кэшируемых данных.
  */
 export interface QueryRecord<T = unknown> {
-  /**
-   * Реактивный сигнал для хранения данных.
-   */
+  /** Reactive signal for cached data / Сигнал для хранения данных */
   readonly data: WritableSignal<T | null>;
 
-  /**
-   * Реактивный сигнал для хранения текущего статуса.
-   */
+  /** Reactive signal for query status / Сигнал для хранения статуса */
   readonly status: WritableSignal<QueryStatus>;
 
-  /**
-   * Реактивный сигнал для хранения ошибки.
-   */
+  /** Reactive signal for error / Сигнал для хранения ошибки */
   readonly error: WritableSignal<unknown | null>;
 
-  /**
-   * Реактивный сигнал для хранения Unix-timestamp последнего обновления.
-   */
+  /** Reactive signal for last updated timestamp / Сигнал для Unix-timestamp */
   readonly lastUpdated: WritableSignal<number>;
 
   /**
-   * Ссылка на текущий активный (in-flight) `Observable` для дедупликации параллельных запросов.
-   * Равен `null`, когда активного сетевого запроса нет.
+   * Reference to active in-flight `Observable` for request deduplication.
+   *
+   * ---
+   * 🇷🇺 **RU**: Ссылка на активный `Observable` для дедупликации параллельных вызовов.
    */
   inFlight$: Observable<T> | null;
 
   /**
-   * Идентификатор активного таймера Garbage Collection для отложенного удаления из памяти.
+   * Active Garbage Collection timer handle.
+   *
+   * ---
+   * 🇷🇺 **RU**: Идентификатор активного таймера сборщика мусора.
    */
   gcTimer: ReturnType<typeof setTimeout> | null;
 
-  /**
-   * Текущие эффективные опции запроса.
-   */
+  /** Effective query options / Эффективные опции запроса */
   options: QueryOptions<T>;
 
-  /**
-   * Счётчик активных подписчиков (компонентов/сервисов), использующих данную запись.
-   */
+  /** Active subscribers count / Счётчик активных подписчиков */
   subscribersCount: number;
 }
 
 /**
- * Снимок состояния записи кэша для мониторинга, отладки и инспекции в UI.
+ * Cache record snapshot for monitoring, debugging, and dashboard inspection.
  *
- * @template T Тип данных.
+ * ---
+ * 🇷🇺 **RU**: Снимок состояния записи кэша для мониторинга, отладки и инспекции.
+ *
+ * @template T Data type / Тип данных.
  */
 export interface CacheSnapshotEntry<T = unknown> {
-  /** Уникальный ключ записи в кэше */
+  /** Unique cache entry key / Уникальный ключ записи в кэше */
   readonly key: string;
-  /** Текущий статус */
+  /** Current query status / Текущий статус */
   readonly status: QueryStatus;
-  /** Значение данных */
+  /** Cached data payload / Значение данных */
   readonly data: T | null;
-  /** Ошибка */
+  /** Error object / Ошибка */
   readonly error: unknown | null;
-  /** Метка времени последнего обновления */
+  /** Last updated Unix timestamp (ms) / Метка времени последнего обновления */
   readonly lastUpdated: number;
-  /** Признак наличия активного сетевого запроса */
+  /** Whether a network request is currently active / Признак активного сетевого запроса */
   readonly hasInFlight: boolean;
-  /** Количество активных подписчиков */
+  /** Number of active subscribers / Количество активных подписчиков */
   readonly subscribersCount: number;
-  /** Заданный TTL в миллисекундах */
+  /** Configured TTL (ms) / Заданный TTL в миллисекундах */
   readonly ttl: number;
-  /** Заданный GC Time в миллисекундах */
+  /** Configured GC Time (ms) / Заданный GC Time в миллисекундах */
   readonly gcTime: number;
 }

@@ -1,6 +1,8 @@
 # ng-signal-state-manager ⚡
 
-> Автономный, легковесный и типобезопасный стейт-менеджер и кэш асинхронных запросов для Angular на базе **Angular Signals** и **RxJS**.
+**English** | [Русский](README_RU.md)
+
+> Standalone, lightweight, and type-safe async query cache and state manager for Angular powered by **Angular Signals** and **RxJS**.
 
 [![Angular](https://img.shields.io/badge/Angular-%3E%3D17.0.0-DD0031.svg?style=flat&logo=angular)](https://angular.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6.svg?style=flat&logo=typescript)](https://www.typescriptlang.org/)
@@ -8,25 +10,25 @@
 
 ---
 
-## 🌟 Ключевые возможности
+## 🌟 Key Features
 
-- 🚀 **In-flight Deduplication**: Если 10 компонентов одновременно запрашивают один и тот же ресурс с одинаковыми параметрами, отправляется **строго 1 сетевой HTTP-запрос**. Все остальные компоненты подключаются к общему разделяемому потоку (`shareReplay({ bufferSize: 1, refCount: false })`).
-- ⚡ **Angular Signals First**: Возвращает готовые сигналы `data()`, `isLoading()`, `isSuccess()`, `isError()`, `error()`. Никаких ручных подписок и утечек памяти.
-- ⏱️ **TTL (Time To Live / Stale-Time)**: Мгновенная отдача свежих данных из оперативной памяти без повторного обращения к сети.
-- 🧹 **Автоматическая сборка мусора (Garbage Collection)**: Когда все компоненты размонтируются (`subscribersCount === 0`), запускается таймер `gcTime`, по истечении которого неиспользуемые данные очищаются из памяти через автоматическую привязку к `DestroyRef`.
-- 🛠️ **Оптимистичные обновления (`setData`)**: Мгновенная модификация кэша без ожидания ответа сервера.
-- 🔑 **Детерминированные ключи**: Автоматическая лексикографическая сортировка ключей объектов (`{ a: 1, b: 2 }` и `{ b: 2, a: 1 }` дают идентичный ключ).
-- 📊 **Встроенные реактивные метрики**: Отслеживание числа обращений, кэш-хитов (`cacheHitsCount`), дедупликаций (`inFlightDeduplicationsCount`) и сэкономленных запросов (`savedRequestsCount`).
+- 🚀 **In-flight Deduplication**: If multiple components request the same resource concurrently with identical parameters, **strictly 1 HTTP network request** is executed. All other consumers subscribe to the same shared stream (`shareReplay({ bufferSize: 1, refCount: false })`).
+- ⚡ **Angular Signals First**: Returns reactive signals out of the box: `data()`, `isLoading()`, `isSuccess()`, `isError()`, `error()`. No manual subscriptions, no boilerplate, zero memory leaks.
+- ⏱️ **TTL (Time To Live / Stale-Time)**: Instantly serves fresh cached data from memory without redundant network roundtrips.
+- 🧹 **Automatic Garbage Collection**: When all consumer components unmount (`subscribersCount === 0`), a `gcTime` timer starts. Once expired, unused cache entries are pruned from memory via automatic `DestroyRef` lifecycle binding.
+- 🛠️ **Optimistic Updates (`setData`)**: Instantly mutate cached state without waiting for a server response.
+- 🔑 **Deterministic Cache Keys**: Object parameters are sorted lexicographically (`{ a: 1, b: 2 }` and `{ b: 2, a: 1 }` produce identical keys).
+- 📊 **Built-in Reactive Metrics**: Track total queries, cache hits (`cacheHitsCount`), in-flight deduplications (`inFlightDeduplicationsCount`), and saved network requests (`savedRequestsCount`).
 
 ---
 
-## 📦 Установка
+## 📦 Installation
 
 ```bash
 npm install ng-signal-state-manager
 ```
 
-Либо локально через относительный путь в `package.json`:
+Or locally via a relative path in `package.json`:
 ```json
 {
   "dependencies": {
@@ -35,18 +37,18 @@ npm install ng-signal-state-manager
 }
 ```
 
-### Требования
-- Angular `>=17.0.0` (полная поддержка Angular 17, 18, 19, 20, 21, 22+)
+### Requirements
+- Angular `>=17.0.0` (Full support for Angular 17, 18, 19, 20, 21, 22+)
 - RxJS `>=7.4.0`
 
 ---
 
-## 🚀 Быстрый старт
+## 🚀 Quick Start
 
-### Вариант 1: Использование через DI-хелпер `injectQuery` в компоненте
+### Approach 1: Component level using `injectQuery` DI helper
 
 ```typescript
-import { Component, input } from '@angular/core';
+import { Component, input, inject } from '@angular/core';
 import { injectQuery } from 'ng-signal-state-manager';
 import { UserApiService } from './user-api.service';
 
@@ -55,10 +57,10 @@ import { UserApiService } from './user-api.service';
   standalone: true,
   template: `
     @if (userQuery.isLoading()) {
-      <p>Загрузка данных пользователя...</p>
+      <p>Loading user profile...</p>
     } @else if (userQuery.isError()) {
-      <p>Ошибка: {{ userQuery.error() }}</p>
-      <button (click)="userQuery.refetch()">Повторить</button>
+      <p>Error: {{ userQuery.error() }}</p>
+      <button (click)="userQuery.refetch()">Retry</button>
     } @else if (userQuery.data(); as user) {
       <h2>{{ user.name }}</h2>
       <p>Email: {{ user.email }}</p>
@@ -69,7 +71,7 @@ export class UserProfileComponent {
   readonly userId = input.required<string>();
   private readonly userApi = inject(UserApiService);
 
-  // Автоматически подключается к кэшу и освобождает память при уничтожении компонента
+  // Automatically connects to cache and cleans up memory on component destroy
   protected readonly userQuery = injectQuery(
     'users.byId',
     (id: string) => this.userApi.getUserById(id),
@@ -81,7 +83,7 @@ export class UserProfileComponent {
 
 ---
 
-### Вариант 2: Использование через фасадный стор (Рекомендуется для масштабируемых проектов)
+### Approach 2: Using a Store / Service Facade (Recommended for scalable apps)
 
 ```typescript
 import { inject, Injectable } from '@angular/core';
@@ -103,7 +105,7 @@ export class UserStore {
       'users.get',
       (userId: string) => this.http.get<User>(`/api/users/${userId}`),
       [id],
-      { ttl: 5 * 60 * 1000 } // Кэш актуален 5 минут
+      { ttl: 5 * 60 * 1000 } // Cache valid for 5 minutes
     );
   }
 
@@ -120,39 +122,39 @@ export class UserStore {
 
 ---
 
-## 📖 Справочник API
+## 📖 API Reference
 
 ### `QueryResult<T>`
-Интерфейс, возвращаемый методами `query()` и `injectQuery()`:
+Interface returned by `query()` and `injectQuery()`:
 
-| Поле | Тип | Описание |
+| Property | Type | Description |
 | :--- | :--- | :--- |
-| `data` | `Signal<T \| null>` | Сигнал только для чтения с кэшированными данными |
+| `data` | `Signal<T \| null>` | Read-only signal containing the cached data |
 | `status` | `Signal<QueryStatus>` | `'idle'` \| `'loading'` \| `'success'` \| `'error'` |
-| `error` | `Signal<unknown \| null>` | Сигнал с объектом ошибки |
-| `isLoading` | `Signal<boolean>` | `true`, если выполняется сетевой запрос |
-| `isSuccess` | `Signal<boolean>` | `true`, если запрос завершился успехом |
-| `isError` | `Signal<boolean>` | `true`, если запрос упал с ошибкой |
-| `refetch()` | `() => Observable<T>` | Принудительный перезапуск сетевого запроса |
-| `setData()` | `(updater) => void` | Оптимистичное обновление данных кэша без HTTP |
-| `lastUpdated()` | `() => number` | Timestamp последнего успешного обновления (мс) |
+| `error` | `Signal<unknown \| null>` | Signal containing the error object, if any |
+| `isLoading` | `Signal<boolean>` | `true` when a network request is currently in flight |
+| `isSuccess` | `Signal<boolean>` | `true` when the request resolved successfully |
+| `isError` | `Signal<boolean>` | `true` when the request failed with an error |
+| `refetch()` | `() => Observable<T>` | Imperatively re-triggers the network request |
+| `setData()` | `(updater) => void` | Optimistically updates cached data without an HTTP call |
+| `lastUpdated()` | `() => number` | Timestamp (ms) of the last successful data fetch |
 
 ---
 
 ### `QueryOptions<T>`
-Опции конфигурации запроса:
+Query configuration options:
 
-| Свойство | Тип | По умолчанию | Описание |
+| Option | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `ttl` | `number` | `60_000` (1 мин) | Время актуальности (Stale Time) в мс |
-| `gcTime` | `number` | `300_000` (5 мин) | Время хранения в памяти после отключения подписчиков |
-| `forceFetch` | `boolean` | `false` | Принудительно игнорировать кэш и идти в сеть |
-| `initialData` | `T \| null` | `null` | Начальное значение до завершения запроса |
-| `onSuccess` | `(data: T) => void` | `undefined` | Коллбэк при успехе |
-| `onError` | `(error: unknown) => void` | `undefined` | Коллбэк при ошибке |
+| `ttl` | `number` | `60_000` (1 min) | Time To Live (stale time) in ms |
+| `gcTime` | `number` | `300_000` (5 min) | Retention duration in memory after all subscribers unmount |
+| `forceFetch` | `boolean` | `false` | Force bypass cache and always perform network request |
+| `initialData` | `T \| null` | `null` | Initial value before request completes |
+| `onSuccess` | `(data: T) => void` | `undefined` | Callback invoked on successful query completion |
+| `onError` | `(error: unknown) => void` | `undefined` | Callback invoked on query error |
 
 ---
 
-## 📄 Лицензия
+## 📄 License
 
 [MIT](LICENSE) © 2026 Evgen
