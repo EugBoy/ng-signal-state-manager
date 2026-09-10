@@ -18,20 +18,10 @@
     "type": "git",
     "url": "git+https://github.com/EugBoy/ng-signal-state-manager.git"
   },
-  "main": "dist/fesm2022/ng-signal-state-manager.mjs",
-  "module": "dist/fesm2022/ng-signal-state-manager.mjs",
-  "types": "dist/types/ng-signal-state-manager.d.ts",
-  "files": [
-    "dist",
-    "src",
-    "README.md",
-    "README_RU.md",
-    "LICENSE"
-  ],
   "scripts": {
     "build": "ng-packagr -p ng-package.json",
     "prepublishOnly": "npm run build",
-    "publish:dist": "npm run build && npm publish dist"
+    "publish:dist": "npm run build && npm publish ./dist"
   },
   "peerDependencies": {
     "@angular/core": ">=17.0.0",
